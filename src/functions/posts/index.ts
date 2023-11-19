@@ -1,3 +1,4 @@
+import postSchema from './post-schema';
 import { handlerPath } from '@libs/handler-resolver';
 
 export default {
@@ -25,12 +26,22 @@ export default {
       http: {
         method: 'post',
         path: 'posts',
+        request: {
+          schemas: {
+            'application/json': postSchema,
+          },
+        },
       },
     },
     {
       http: {
         method: 'put',
         path: 'posts/{id}',
+        request: {
+          schemas: {
+            'application/json': postSchema,
+          },
+        },
       },
     },
   ],
