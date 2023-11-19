@@ -23,6 +23,7 @@
     "json-schema-to-ts": "^2.9.2",
     "serverless": "^3.37.0",
     "serverless-esbuild": "^1.49.0",
+    "serverless-offline": "^13.3.0",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.2.2"

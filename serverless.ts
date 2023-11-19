@@ -8,7 +8,7 @@ import {
 const serverlessConfiguration: AWS = {
   service: 'blog-backend-aws',
   frameworkVersion: '3',
-  plugins: ['serverless-esbuild'],
+  plugins: ['serverless-esbuild', 'serverless-offline'],
   provider: {
     region: 'ap-northeast-2',
     name: 'aws',
