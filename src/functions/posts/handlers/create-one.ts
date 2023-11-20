@@ -6,6 +6,5 @@ export const createOne: ValidatedEventAPIGatewayProxyEvent<void> = async (event)
     body: event.body,
     method: event.httpMethod,
     pathParameters: event.pathParameters,
-    event,
   });
 };
