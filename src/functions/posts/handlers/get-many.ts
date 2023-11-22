@@ -1,12 +1,13 @@
 import { formatJSONResponse, ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
-import { putPost } from '@functions/posts/services/posts.dynamo-db.service';
+import { mongodbHandler } from '@libs/mongodb.connection';
 
 export const getMany: ValidatedEventAPIGatewayProxyEvent<void> = async (event) => {
+  const res = await mongodbHandler();
 
-  await putPost({ id: 'abcd', title: 'my new title'});
   return formatJSONResponse({
     message: `[GET] POSTS MANY MANY`,
     method: event.httpMethod,
     event,
+    res,
   });
 };

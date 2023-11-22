@@ -4,18 +4,17 @@
   "description": "Serverless aws-nodejs-typescript template",
   "main": "serverless.ts",
   "scripts": {
-    "run-dynamo-db-local": "c:\\Progra~1\\Java\\jdk-17.0.5\\bin\\java.exe -Djava.library.path=db/dynamo-db/DynamoDBLocal_lib -jar db/dynamo-db/DynamoDBLocal.jar -sharedDb",
     "posts-get-all": "sls invoke local -f posts --data '{\"queryStringParameters\": {\"name\": \"yolo\"}'\n",
-    "serverless-offline": "cross-env IS_LOCAL=true serverless offline"
+    "serverless-offline": "serverless offline"
   },
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.454.0",
-    "@aws-sdk/lib-dynamodb": "^3.454.0",
     "@middy/core": "^5.0.2",
-    "@middy/http-json-body-parser": "^5.0.2"
+    "@middy/http-json-body-parser": "^5.0.2",
+    "aws4": "^1.12.0",
+    "mongodb": "^6.3.0"
   },
   "devDependencies": {
     "@serverless/typescript": "^3.30.1",
