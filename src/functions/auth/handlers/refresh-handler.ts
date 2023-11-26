@@ -1,3 +1,4 @@
+import { issueUserAccessToken } from '@functions/auth/handlers/helpers/access-token-issuer';
 import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 import { formatJSONResponse } from '@libs/api-gateway';
 
@@ -27,19 +28,22 @@ export const refresh: ValidatedEventAPIGatewayProxyEvent<unknown> = async (event
   const accessTokenDecoded: { email: string; roles: string[]; iat: number; exp: number; iss: string; } = verified.payload;
 
   // 2. find refresh token reference in DB
-  const findRefreshTokenQuery: string = `SELECT rt.token, rt.expiresIn, rt.invalidated FROM refresh_tokens rt
+  const findRefreshTokenQuery: string = `SELECT rt.token, rt.expiresIn, rt.invalidated, u.id, u.email FROM refresh_tokens rt
          JOIN users u ON u.id = rt.user_id WHERE u.email = ?;`
   const refreshTokenWrapper = await db.getrow(findRefreshTokenQuery, [accessTokenDecoded.email]);
 
+  let updatedAccessToken: string;
   // 3. User submitted refresh token & token at server match
   if (refreshTokenWrapper.token === clientSentRefreshToken) {
-    // todo: Issue another access token to user.
+    const { email, id, roles } = refreshTokenWrapper;
+    updatedAccessToken = await issueUserAccessToken({ email, id, roles})
   } else {
     // todo: Revoke current refresh token at server, force user to login.
   }
 
   return formatJSONResponse({
     message: 'refresh tokens match',
+    updatedAccessToken,
     accessTokenDecoded,
     clientSentRefreshToken,
     refreshToken: refreshTokenWrapper.token,
