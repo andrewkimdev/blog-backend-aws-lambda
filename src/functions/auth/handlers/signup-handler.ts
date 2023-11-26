@@ -18,7 +18,7 @@ export const signup: ValidatedEventAPIGatewayProxyEvent<unknown> = async (event)
   }
 
   // 2. Create password hash
-  const saltRounds = +process.env.SALT_ROUNDS;
+  const saltRounds = +process.env.JWT_SALT_ROUNDS;
   const hash = await bcrypt.hash(password, saltRounds);
 
   // 4. Create new user
