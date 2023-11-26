@@ -1,49 +1,106 @@
-import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
-import { formatJSONResponse } from '@libs/api-gateway';
+import { APIGatewayProxyEventHeaders } from 'aws-lambda';
+import { JwtPayload } from 'jsonwebtoken';
 
-import { HttpStatus } from '@libs/status-code.type';
-
-import * as jwt from 'jsonwebtoken';
 import { db } from '@libs/mysqldb.connection';
+import { HttpStatus } from '@libs/status-code.type';
+import { decodeJwtFromHeader } from '@functions/auth/handlers/helpers/access-token-validator';
+import { formatJSONResponse, ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
+import { now } from '@libs/time-helper';
+
+import { issueUserAccessToken } from './helpers/access-token-issuer';
+
+interface RefreshTokenWrapper {
+  user_id: number;
+  token: string;
+  expiresIn: number;
+  issuedAt: number;
+  revoked: boolean;
+  revokedAt: number;
+}
+
+interface CustomJwtPayload {
+  email: string;
+  roles: string[];
+  iat: number;
+  exp: number;
+  iss: string;
+}
 
 export const refresh: ValidatedEventAPIGatewayProxyEvent<unknown> = async (event) => {
-  const clientSentRefreshToken = event.headers['Refresh-Token'] ?? '';
-  const accessToken = event.headers['Authorization'].split(' ')[1];
+  const clientSentRefreshToken = getClientSentRefreshToken(event.headers);
 
-  const { JWT_PRIVATE_SECRET } = process.env;
-
-  let verified: any;
-
-  // 1. Validate jwt
+  let jwt: JwtPayload & CustomJwtPayload;
   try {
-    verified = jwt.verify(accessToken, JWT_PRIVATE_SECRET, { complete: true });
+    const { decoded } = decodeJwtFromHeader(event.headers);
+    if (typeof decoded.payload === 'string') {
+      console.error('something went wrong with payload type');
+      return internalServerError();
+    }
+    jwt = decoded.payload as JwtPayload & CustomJwtPayload;
   } catch (error) {
-    console.error(error);
-    return formatJSONResponse({
-      error: { message: 'Invalid credentials.' },
-    }, HttpStatus.Conflict)
+    return invalidCredentials();
   }
-
-  const accessTokenDecoded: { email: string; roles: string[]; iat: number; exp: number; iss: string; } = verified.payload;
 
   // 2. find refresh token reference in DB
-  const findRefreshTokenQuery: string = `SELECT rt.token, rt.expiresIn, rt.invalidated FROM refresh_tokens rt
-         JOIN users u ON u.id = rt.user_id WHERE u.email = ?;`
-  const refreshTokenWrapper = await db.getrow(findRefreshTokenQuery, [accessTokenDecoded.email]);
+  const storedRefreshTokenWrapper: RefreshTokenWrapper = await getRefreshTokenFromStore(jwt.email);
 
   // 3. User submitted refresh token & token at server match
-  if (refreshTokenWrapper.token === clientSentRefreshToken) {
-    // todo: Issue another access token to user.
-  } else {
-    // todo: Revoke current refresh token at server, force user to login.
+  if (storedRefreshTokenWrapper.token !== clientSentRefreshToken) {
+    await revokeRefreshToken(storedRefreshTokenWrapper.user_id);
+    return sessionRevokedResponse();
   }
 
+  if (storedRefreshTokenWrapper.revoked) {
+    return sessionRevokedResponse();
+  }
+
+  if (storedRefreshTokenWrapper.expiresIn < now()) {
+    return sessionExpiredResponse();
+  }
+
+  const { email, id, roles } = jwt;
+  const updatedAccessToken = await issueUserAccessToken({ email, id, roles })
   return formatJSONResponse({
-    message: 'refresh tokens match',
-    accessTokenDecoded,
-    clientSentRefreshToken,
-    refreshToken: refreshTokenWrapper.token,
-    refreshTokenWrapper,
-    match: clientSentRefreshToken.trim() === ('' + refreshTokenWrapper.token).trim(),
+    message: 'Access token refreshed',
+    access_token: updatedAccessToken,
   }, HttpStatus.OK);
+}
+
+function getClientSentRefreshToken(headers: APIGatewayProxyEventHeaders) {
+  return headers['Refresh-Token'] ?? '';
+}
+
+function sessionRevokedResponse() {
+  return formatJSONResponse({
+    error: { message: 'Login session revoked. Login again.' }
+  }, HttpStatus.Unauthorized);
+}
+
+function sessionExpiredResponse() {
+  return formatJSONResponse({
+    error: { message: 'Login session expired. Login again.' }
+  }, HttpStatus.Unauthorized);
+}
+
+function internalServerError() {
+  return formatJSONResponse({
+    message: 'Something went wrong. Try again' },
+    HttpStatus.InternalServerError);
+}
+
+function invalidCredentials() {
+  return formatJSONResponse({
+    error: { message: 'Invalid credentials.' },
+    httpStatus: HttpStatus.Conflict,
+  })
+}
+async function getRefreshTokenFromStore(email: string): Promise<RefreshTokenWrapper> {
+  const findRefreshTokenQuery: string = `SELECT user_id, token, expiresIn, issuedAt, revoked, revokedAt FROM refresh_tokens rt WHERE  
+                                                EXISTS (SELECT * FROM users u WHERE u.id = rt.user_id AND u.email = ?)`;
+  return await db.getrow<RefreshTokenWrapper>(findRefreshTokenQuery, [email]);
+}
+
+async function revokeRefreshToken(userId: number): Promise<void> {
+  const revokeRefreshTokenQuery: string = `UPDATE refresh_tokens SET revoked = true, revokedAt = ${now()} WHERE user_id = ?;`;
+  await db.execute(revokeRefreshTokenQuery, [userId]);
 }

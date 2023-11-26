@@ -10,14 +10,15 @@ export const generateAndStoreRefreshTokenForUserId = async (userId: number): Pro
   const refreshToken = generateRandomString(127);
   const expiresInSeconds = 60 * 60 * 24 * (+process.env.REFRESH_TOKEN_LIFETIME_IN_DAYS || 1);
   const expiresIn = now() + expiresInSeconds;
-  const upsertRefreshTokenQuery: string = `INSERT INTO refresh_tokens (user_id, token, expiresIn, issuedAt, invalidated) 
-                                                VALUES (?, ?, ?, ?, ?)
+  const upsertRefreshTokenQuery: string = `INSERT INTO refresh_tokens (user_id, token, expiresIn, issuedAt, revoked, revokedAt) 
+                                                VALUES (?, ?, ?, ?, ?, ?)
                                                 ON DUPLICATE KEY UPDATE 
                                                 token = VALUES(token), 
                                                 expiresIn = VALUES(expiresIn), 
                                                 issuedAt = VALUES(issuedAt), 
-                                                invalidated = VALUES(invalidated)`
-  const { affectedRows } = await db.query(upsertRefreshTokenQuery, [userId, refreshToken, expiresIn, now(), false]);
+                                                revoked = VALUES(revoked),
+                                                revokedAt = VALUES(revokedAt)`
+  const { affectedRows } = await db.query(upsertRefreshTokenQuery, [userId, refreshToken, expiresIn, now(), false, 0]);
 
   return affectedRows > 0
     ? {
