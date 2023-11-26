@@ -32,6 +32,12 @@ export default {
     {
       http: {
         method: 'post',
+        path: 'auth/refresh',
+      },
+    },
+    {
+      http: {
+        method: 'post',
         path: 'auth/logout',
         request: {
           schemas: {
