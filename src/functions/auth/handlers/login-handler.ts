@@ -1,10 +1,11 @@
+import { generateAndStoreRefreshTokenForUserId } from '@functions/auth/handlers/helpers/refresh-token-generator';
 import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 import { formatJSONResponse } from '@libs/api-gateway';
 
+import { HttpStatus } from '@libs/status-code.type';
+
 import { getUserToken } from './helpers/jwt-signer';
 import { validateUserLoginCredentials } from './helpers/login-credential-validator';
-
-import { HttpStatus } from '@libs/status-code.type';
 
 
 export const login: ValidatedEventAPIGatewayProxyEvent<unknown> = async (event) => {
@@ -18,10 +19,23 @@ export const login: ValidatedEventAPIGatewayProxyEvent<unknown> = async (event) 
   }
 
   // 2. Get signed jwt to user
-  const token: string = await getUserToken(user);
+  const accessToken: string = await getUserToken(user);
+
+  // 3. Get refresh token and store in DB.
+  const res = await generateAndStoreRefreshTokenForUserId(user.id);
+  if (res.error) {
+    console.error(res.error);
+    return formatJSONResponse({
+      error: 'Internal server error',
+    }, HttpStatus.InternalServerError)
+  }
 
   return formatJSONResponse({
-    token,
-    message: 'Login success!'
+    message: 'Login success!',
+    access_token: accessToken,
+    refresh_token: {
+      token: res.refreshToken,
+      expiresIn: res.expiresIn,
+    },
   }, HttpStatus.OK);
 };
