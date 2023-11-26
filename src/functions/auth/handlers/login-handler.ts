@@ -4,7 +4,7 @@ import { formatJSONResponse } from '@libs/api-gateway';
 
 import { HttpStatus } from '@libs/status-code.type';
 
-import { getUserToken } from './helpers/jwt-signer';
+import { issueUserAccessToken } from './helpers/access-token-issuer';
 import { validateUserLoginCredentials } from './helpers/login-credential-validator';
 
 
@@ -19,7 +19,7 @@ export const login: ValidatedEventAPIGatewayProxyEvent<unknown> = async (event) 
   }
 
   // 2. Get signed jwt to user
-  const accessToken: string = await getUserToken(user);
+  const accessToken: string = await issueUserAccessToken(user);
 
   // 3. Get refresh token and store in DB.
   const res = await generateAndStoreRefreshTokenForUserId(user.id);
