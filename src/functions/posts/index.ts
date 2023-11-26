@@ -2,7 +2,7 @@ import postSchema from './post-schema';
 import { handlerPath } from '@libs/handler-resolver';
 
 export default {
-  handler: `${handlerPath(__dirname)}/handlers/handler.main`,
+  handler: `${handlerPath(__dirname)}/handlers/index.main`,
   events: [
     {
       http: {
