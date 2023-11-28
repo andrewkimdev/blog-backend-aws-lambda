@@ -23,11 +23,11 @@ export const refresh: ValidatedEventAPIGatewayProxyEvent<unknown> = async (event
     const { decoded } = decodeJwtFromHeader(event.headers);
     if (typeof decoded.payload === 'string') {
       console.error('something went wrong with payload type');
-      return internalServerError();
+      return internalServerErrorResponse();
     }
     jwt = decoded.payload as JwtPayload & CustomJwtPayload;
   } catch (error) {
-    return invalidCredentials();
+    return invalidCredentialsResponse();
   }
 
   // 2. Validate user-sent refresh token
@@ -49,14 +49,14 @@ function getClientSentRefreshToken(headers: APIGatewayProxyEventHeaders) {
   return headers['Refresh-Token'] ?? '';
 }
 
-function internalServerError() {
+function internalServerErrorResponse() {
   return formatJSONResponse({
       message: 'Something went wrong. Try again'
     },
     HttpStatus.InternalServerError);
 }
 
-function invalidCredentials() {
+function invalidCredentialsResponse() {
   return formatJSONResponse({
     error: { message: 'Invalid credentials.' },
     httpStatus: HttpStatus.Conflict,

@@ -14,15 +14,15 @@ interface RefreshTokenWrapper {
 
 export async function validateRefreshToken(clientSentRefreshToken: string, email: string) {
   // Find refresh token reference in DB
-  const storedRefreshTokenWrapper: RefreshTokenWrapper = await getRefreshTokenFromStore(email);
-  if (storedRefreshTokenWrapper.token !== clientSentRefreshToken) {
-    await revokeRefreshToken(storedRefreshTokenWrapper.user_id);
+  const { user_id, token, revoked, expiresIn }: RefreshTokenWrapper = await getRefreshTokenFromStore(email);
+  if (token !== clientSentRefreshToken) {
+    await revokeRefreshToken(user_id);
     return sessionRevokedResponse();
   }
-  if (storedRefreshTokenWrapper.revoked) {
+  if (revoked) {
     return sessionRevokedResponse();
   }
-  if (storedRefreshTokenWrapper.expiresIn < now()) {
+  if (expiresIn < now()) {
     return sessionExpiredResponse();
   }
   return null;
