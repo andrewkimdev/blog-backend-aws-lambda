@@ -3,6 +3,7 @@ import { JwtPayload } from 'jsonwebtoken';
 
 import { HttpStatus } from '@libs/status-code.type';
 import { formatJSONResponse, ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
+import { internalServerErrorResponse, invalidCredentialsResponse } from '@libs/responses';
 
 import { decodeJwtFromHeader } from './helpers/access-token-validator';
 import { issueUserAccessToken } from './helpers/access-token-issuer';
@@ -47,18 +48,4 @@ export const refresh: ValidatedEventAPIGatewayProxyEvent<unknown> = async (event
 
 function getClientSentRefreshToken(headers: APIGatewayProxyEventHeaders) {
   return headers['Refresh-Token'] ?? '';
-}
-
-function internalServerErrorResponse() {
-  return formatJSONResponse({
-      message: 'Something went wrong. Try again'
-    },
-    HttpStatus.InternalServerError);
-}
-
-function invalidCredentialsResponse() {
-  return formatJSONResponse({
-    error: { message: 'Invalid credentials.' },
-    httpStatus: HttpStatus.Conflict,
-  })
 }
