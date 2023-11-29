@@ -1,10 +1,11 @@
+import { db } from '@libs/database/mysqldb.connection';
 import * as bcrypt from 'bcryptjs';
 import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 import { formatJSONResponse } from '@libs/api-gateway';
 
-import { db } from '@libs/database/mysqldb.connection';
 import { HttpStatus } from '@libs/status-code.type';
 import { now } from '@libs/time-helper';
+
 import { emailValidator } from './helpers';
 
 export const signup: ValidatedEventAPIGatewayProxyEvent<unknown> = async (event) => {

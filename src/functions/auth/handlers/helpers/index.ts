@@ -4,4 +4,4 @@ export * from './email/email-validator';
 export * from './email/email-format-validator';
 export * from './refresh-token/refresh-token-generator';
 export * from './refresh-token/refresh-token-validators'
-
+export * from './login-credential-validator';

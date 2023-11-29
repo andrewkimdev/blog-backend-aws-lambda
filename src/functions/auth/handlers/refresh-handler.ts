@@ -1,11 +1,11 @@
-import { APIGatewayProxyEventHeaders } from 'aws-lambda';
 import { JwtPayload } from 'jsonwebtoken';
+import { APIGatewayProxyEventHeaders } from 'aws-lambda';
 
 import { HttpStatus } from '@libs/status-code.type';
 import { formatJSONResponse, ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 import { internalServerErrorResponse, invalidCredentialsResponse } from '@libs/responses';
 
-import { decodeJwtFromHeader, issueUserAccessToken, validateRefreshToken } from '@functions/auth/handlers/helpers';
+import { decodeJwtFromHeader, issueUserAccessToken, validateRefreshToken } from './helpers';
 
 
 interface CustomJwtPayload {
