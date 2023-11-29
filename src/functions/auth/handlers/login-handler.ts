@@ -1,10 +1,10 @@
-import { generateAndStoreRefreshTokenForUserId } from '@functions/auth/handlers/helpers/refresh-token-generator';
+import { generateAndStoreRefreshTokenForUserId } from '@functions/auth/handlers/helpers/refresh-token/refresh-token-generator';
 import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 import { formatJSONResponse } from '@libs/api-gateway';
 
 import { HttpStatus } from '@libs/status-code.type';
 
-import { issueUserAccessToken } from './helpers/access-token-issuer';
+import { issueUserAccessToken } from '@functions/auth/handlers/helpers';
 import { validateUserLoginCredentials } from './helpers/login-credential-validator';
 
 

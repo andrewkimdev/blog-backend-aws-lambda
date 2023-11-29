@@ -5,9 +5,7 @@ import { HttpStatus } from '@libs/status-code.type';
 import { formatJSONResponse, ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 import { internalServerErrorResponse, invalidCredentialsResponse } from '@libs/responses';
 
-import { decodeJwtFromHeader } from './helpers/access-token-validator';
-import { issueUserAccessToken } from './helpers/access-token-issuer';
-import { validateRefreshToken } from './helpers/refresh-token-validators';
+import { decodeJwtFromHeader, issueUserAccessToken, validateRefreshToken } from '@functions/auth/handlers/helpers';
 
 
 interface CustomJwtPayload {

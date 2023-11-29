@@ -5,7 +5,7 @@ import { formatJSONResponse } from '@libs/api-gateway';
 import { db } from '@libs/database/mysqldb.connection';
 import { HttpStatus } from '@libs/status-code.type';
 import { now } from '@libs/time-helper';
-import { emailValidator } from './helpers/email-validator';
+import { emailValidator } from './helpers';
 
 export const signup: ValidatedEventAPIGatewayProxyEvent<unknown> = async (event) => {
   const body: { email: string; password: string } = JSON.parse(event.body as string);
