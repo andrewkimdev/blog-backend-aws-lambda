@@ -1,7 +1,8 @@
-import { now } from '@libs/time-helper';
-import { formatJSONResponse } from '@libs/api-gateway';
-import { HttpStatus } from '@libs/status-code.type';
 import { db } from '@libs/mysqldb.connection';
+import { formatJSONResponse } from '@libs/api-gateway';
+import { now } from '@libs/time-helper';
+import { HttpStatus } from '@libs/status-code.type';
+import { internalServerErrorResponse, sessionExpiredResponse } from '@libs/responses';
 
 interface RefreshTokenWrapper {
   user_id: number;
@@ -12,38 +13,43 @@ interface RefreshTokenWrapper {
   revokedAt: number;
 }
 
-export async function validateRefreshToken(clientSentRefreshToken: string, email: string) {
+export const validateRefreshToken = async (clientSentRefreshToken: string, email: string) => {
   // Find refresh token reference in DB
-  const { user_id, token, revoked, expiresIn }: RefreshTokenWrapper = await getRefreshTokenFromStore(email);
-  if (token !== clientSentRefreshToken) {
-    await revokeRefreshToken(user_id);
-    return sessionRevokedResponse();
+  try {
+    const { user_id, token, revoked, expiresIn }: RefreshTokenWrapper = await getRefreshTokenFromStore(email);
+    if (token !== clientSentRefreshToken) {
+      await revokeRefreshToken(user_id);
+      return refreshTokenRevokedResponse();
+    }
+    if (revoked) {
+      return refreshTokenRevokedResponse();
+    }
+    if (expiresIn < now()) {
+      return sessionExpiredResponse();
+    }
+    return null;
+  } catch (error) {
+    console.error ('Something went wrong: ' + error);
+    return internalServerErrorResponse();
   }
-  if (revoked) {
-    return sessionRevokedResponse();
-  }
-  if (expiresIn < now()) {
-    return sessionExpiredResponse();
-  }
-  return null;
 }
 
-function sessionRevokedResponse() {
+function refreshTokenRevokedResponse() {
   return formatJSONResponse({
     error: { message: 'Login session revoked. Login again.' }
   }, HttpStatus.Unauthorized);
 }
 
-function sessionExpiredResponse() {
-  return formatJSONResponse({
-    error: { message: 'Login session expired. Login again.' }
-  }, HttpStatus.Unauthorized);
-}
-
 async function getRefreshTokenFromStore(email: string): Promise<RefreshTokenWrapper> {
-  const findRefreshTokenQuery: string = `SELECT user_id, token, expiresIn, issuedAt, revoked, revokedAt FROM refresh_tokens rt WHERE  
-                                                EXISTS (SELECT * FROM users u WHERE u.id = rt.user_id AND u.email = ?)`;
-  return await db.getrow<RefreshTokenWrapper>(findRefreshTokenQuery, [email]);
+  try {
+    const findRefreshTokenQuery: string = `SELECT user_id, token, expiresIn, issuedAt, revoked, revokedAt FROM refresh_tokens rt WHERE  
+                                                  EXISTS (SELECT * FROM users u WHERE u.id = rt.user_id AND u.email = ?)`;
+    return await db.getrow<RefreshTokenWrapper>(findRefreshTokenQuery, [email]);
+  } catch (error) {
+    console.error('[ERROR retrieving refresh token from store] ' + error);
+    // 사용자에게 직접 이것이 가는지?
+    throw new Error('Something weng wrong. Login again.');
+  }
 }
 
 async function revokeRefreshToken(userId: number): Promise<void> {
