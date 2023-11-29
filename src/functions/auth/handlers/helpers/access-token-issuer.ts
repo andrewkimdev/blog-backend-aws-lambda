@@ -1,5 +1,5 @@
 import * as jwt from 'jsonwebtoken';
-import { db } from '@libs/mysqldb.connection';
+import { db } from '@libs/database/mysqldb.connection';
 
 export const issueUserAccessToken = async (user: { email: string; id: number; roles: string[]}) => {
   const _userRoleQuery: string = 'SELECT r.name FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = ?'

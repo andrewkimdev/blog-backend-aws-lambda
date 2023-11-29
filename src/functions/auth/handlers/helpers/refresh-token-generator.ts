@@ -1,6 +1,6 @@
-import { db } from '@libs/mysqldb.connection';
+import { db } from '@libs/database/mysqldb.connection';
 import { now } from '@libs/time-helper';
-import { generateRandomString } from '@libs/random-string-generator';
+import { generateRandomString } from './random-string-generator';
 
 export const generateAndStoreRefreshTokenForUserId = async (userId: number): Promise<{
   refreshToken: string;

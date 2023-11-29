@@ -1,7 +1,8 @@
 import { formatJSONResponse } from '@libs/api-gateway';
-import { db } from '@libs/mysqldb.connection';
-import { isEmailFormatValid } from '@libs/email-format-validator';
+import { db } from '@libs/database/mysqldb.connection';
 import { HttpStatus } from '@libs/status-code.type';
+
+import { isEmailFormatValid } from './email-format-validator';
 
 export const emailValidator = async (email: string) => {
   // Verify email address format

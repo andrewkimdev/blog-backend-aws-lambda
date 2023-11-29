@@ -1,4 +1,4 @@
-import { db } from '@libs/mysqldb.connection';
+import { db } from '@libs/database/mysqldb.connection';
 import { formatJSONResponse } from '@libs/api-gateway';
 import { now } from '@libs/time-helper';
 import { HttpStatus } from '@libs/status-code.type';

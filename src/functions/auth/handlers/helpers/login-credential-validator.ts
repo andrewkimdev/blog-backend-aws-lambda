@@ -1,7 +1,7 @@
 import * as bcrypt from 'bcryptjs';
 
 import { formatJSONResponse } from '@libs/api-gateway';
-import { db } from '@libs/mysqldb.connection';
+import { db } from '@libs/database/mysqldb.connection';
 import { HttpStatus } from '@libs/status-code.type';
 
 

@@ -1,8 +1,8 @@
+import * as bcrypt from 'bcryptjs';
 import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 import { formatJSONResponse } from '@libs/api-gateway';
-import * as bcrypt from 'bcryptjs';
 
-import { db } from '@libs/mysqldb.connection';
+import { db } from '@libs/database/mysqldb.connection';
 import { HttpStatus } from '@libs/status-code.type';
 import { now } from '@libs/time-helper';
 import { emailValidator } from './helpers/email-validator';
