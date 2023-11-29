@@ -48,7 +48,7 @@ async function getRefreshTokenFromStore(email: string): Promise<RefreshTokenWrap
   } catch (error) {
     console.error('[ERROR retrieving refresh token from store] ' + error);
     // 사용자에게 직접 이것이 가는지?
-    throw new Error('Something weng wrong. Login again.');
+    throw new Error('Something went wrong. Login again.');
   }
 }
 
