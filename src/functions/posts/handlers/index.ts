@@ -10,7 +10,7 @@ import { deleteById } from './delete-by-id';
 const posts: ValidatedEventAPIGatewayProxyEvent<void> = async (event, context, cb) => {
   switch(event.httpMethod) {
     case 'GET':
-      return !!event.pathParameters ? getOneById(event, context, cb) : getMany(event, context, cb)
+      return event.pathParameters ? getOneById(event, context, cb) : getMany(event, context, cb)
     case 'DELETE':
       return deleteById(event, context, cb);
     case 'POST':
