@@ -34,7 +34,7 @@ export const emailValidator = async (email: string): Promise<object|null> => {
  * @return {Promise<boolean>} Return a promise that resolves into a boolean value indicating whether the email is already taken.
  */
 async function isEmailAlreadyTaken(email: string): Promise<boolean> {
-  const emailCheckQuery = `SELECT COUNT(*) FROM users u where u.email = ?`;
+  const emailCheckQuery: string = `SELECT COUNT(*) FROM users u WHERE u.email = ?`;
   try {
     const emailCheckResult = await db.getrow(emailCheckQuery, [email]);
     return emailCheckResult?.['count(*)'] > 0;
