@@ -29,7 +29,7 @@ export const generateAndStoreRefreshTokenForUserId = async (userId: number): Pro
                                                 revokedAt = VALUES(revokedAt)`;
 
   try {
-    const { affectedRows } = await db.query(upsertRefreshTokenQuery, [userId, refreshToken, expiresIn, now(), false, 0]);
+    const affectedRows = await db.insert(upsertRefreshTokenQuery, [userId, refreshToken, expiresIn, now(), false, 0]);
     return affectedRows > 0
       ? {
         refreshToken,

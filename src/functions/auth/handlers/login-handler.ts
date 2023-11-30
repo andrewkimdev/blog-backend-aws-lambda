@@ -1,11 +1,12 @@
 import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 import { formatJSONResponse } from '@libs/api-gateway';
+import { UserAuth } from '@functions/auth/handlers/types';
 
 import { HttpStatus } from '@libs/status-code.type';
 
 import {
   generateAndStoreRefreshTokenForUserId,
-  issueUserAccessToken, UserAuth,
+  issueUserAccessToken,
   validateUserLoginCredentials,
 } from './helpers';
 import { APIGatewayProxyResult } from 'aws-lambda';

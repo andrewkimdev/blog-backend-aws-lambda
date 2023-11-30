@@ -1,13 +1,11 @@
-import * as bcrypt from 'bcryptjs';
-import { db } from '@libs/database/mysqldb.connection';
-
 import { UserAuth } from '@functions/auth/handlers/types';
+import { db } from '@libs/database/mysqldb.connection';
 import { invalidCredentialResponse } from '@libs/responses';
+import * as bcrypt from 'bcryptjs';
 
 export const validateUserLoginCredentials = async (email: string, password: string): Promise<{ user: UserAuth }> => {
   const userEmailLookupQuery: string = 'SELECT id, email, password FROM users WHERE email = ?';
-  const userLookupResult = await db.query(userEmailLookupQuery, [email]);
-  const user: UserAuth = userLookupResult[0];
+  const user: UserAuth = await db.getrow(userEmailLookupQuery, [email]);
 
   // 1. User does not exist by the email
   if (!user) {

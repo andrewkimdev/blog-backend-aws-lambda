@@ -1,13 +1,13 @@
 import * as jwt from 'jsonwebtoken';
 import { db } from '@libs/database/mysqldb.connection';
-import { UserAuth } from '@functions/auth/handlers/helpers';
+import { UserAuth } from '@functions/auth/handlers/types';
 
 /**
  * This function issues a JWT token for a user
  * @param {object} user - A user object
  * @return {Promise<string>} A promise that resolves into a JWT token
  */
-export const issueUserAccessToken = async (user: UserAuth): Promise<string> => {
+export const issueUserAccessToken = async (user: Omit<UserAuth, "password">): Promise<string> => {
   const userRoleLookupQuery: string = 'SELECT r.name FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = ?'
 
   let userRoleLookupResult: { name: string; }[];

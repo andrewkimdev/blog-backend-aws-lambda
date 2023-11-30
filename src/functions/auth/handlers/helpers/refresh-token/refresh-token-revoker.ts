@@ -15,7 +15,7 @@ export async function revokeRefreshToken(userId: number): Promise<void> {
   const revokeRefreshTokenQuery: string = `UPDATE refresh_tokens SET revoked = true, revokedAt = ${now()} WHERE user_id = ?;`;
 
   try {
-    await db.execute(revokeRefreshTokenQuery, [userId]);
+    await db.update(revokeRefreshTokenQuery, [userId]);
   } catch (error) {
     console.error("Error while revoking refresh token: ", error);
     throw error;
