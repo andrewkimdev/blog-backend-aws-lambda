@@ -1,28 +1,23 @@
 import * as bcrypt from 'bcryptjs';
-
-import { formatJSONResponse } from '@libs/api-gateway';
 import { db } from '@libs/database/mysqldb.connection';
-import { HttpStatus } from '@libs/status-code.type';
 
+import { UserAuth } from '@functions/auth/handlers/types';
+import { invalidCredentialResponse } from '@libs/responses';
 
-const invalidCredentialRes = formatJSONResponse({
-  message: 'Invalid user or password',
-}, HttpStatus.NotAcceptable);
-
-export const validateUserLoginCredentials = async (email: string, password: string) => {
-  const _userFindQuery: string = 'SELECT id, email, password FROM users WHERE email = ?';
-  const _userFindQueryRes = await db.query(_userFindQuery, [email]);
-  const user: { id: number, email: string, password: string, roles: string[]} = _userFindQueryRes[0];
+export const validateUserLoginCredentials = async (email: string, password: string): Promise<{ user: UserAuth }> => {
+  const userEmailLookupQuery: string = 'SELECT id, email, password FROM users WHERE email = ?';
+  const userLookupResult = await db.query(userEmailLookupQuery, [email]);
+  const user: UserAuth = userLookupResult[0];
 
   // 1. User does not exist by the email
   if (!user) {
-    return { error: invalidCredentialRes };
+    throw invalidCredentialResponse();
   }
 
   // 2. User password does  not match
   const matched = await bcrypt.compare(password, user.password);
   if (!matched) {
-    return { error: invalidCredentialRes };
+    throw invalidCredentialResponse();
   }
 
   // User exists and credentials match. Good to go.

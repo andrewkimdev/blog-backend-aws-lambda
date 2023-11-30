@@ -4,7 +4,12 @@ import { HttpStatus } from '@libs/status-code.type';
 
 import { isEmailFormatValid } from './email-format-validator';
 
-export const emailValidator = async (email: string) => {
+/**
+ * This function validates an email address.
+ * @param {string} email - The email address to validate.
+ * @return {Promise<object|null>} An object with an error message and HTTP status, or null if email is valid and unique.
+ */
+export const emailValidator = async (email: string): Promise<object|null> => {
   // Verify email address format
   if (!isEmailFormatValid(email)) {
     return formatJSONResponse({
@@ -23,9 +28,18 @@ export const emailValidator = async (email: string) => {
   return null;
 }
 
+/**
+ * This function checks if an email address is already used in the database.
+ * @param {string} email - The email address to check.
+ * @return {Promise<boolean>} Return a promise that resolves into a boolean value indicating whether the email is already taken.
+ */
 async function isEmailAlreadyTaken(email: string): Promise<boolean> {
-  const emailExistsQuery = `SELECT COUNT(*) FROM users u where u.email = ?`;
-  const emailExistsRes = await db.query(emailExistsQuery, [email]);
-  return emailExistsRes[0]?.['count(*)'] > 0;
+  const emailCheckQuery = `SELECT COUNT(*) FROM users u where u.email = ?`;
+  try {
+    const emailCheckResult = await db.query(emailCheckQuery, [email]);
+    return emailCheckResult[0]?.['count(*)'] > 0;
+  } catch (error) {
+    console.error(`Error while checking if email is already taken: ${error}`);
+    return false;
+  }
 }
-

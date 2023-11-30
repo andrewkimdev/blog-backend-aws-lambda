@@ -1,5 +1,5 @@
 import { JwtPayload } from 'jsonwebtoken';
-import { APIGatewayProxyEventHeaders } from 'aws-lambda';
+import { APIGatewayProxyEventHeaders, APIGatewayProxyResult } from 'aws-lambda';
 
 import { HttpStatus } from '@libs/status-code.type';
 import { formatJSONResponse, ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
@@ -13,7 +13,7 @@ interface CustomJwtPayload {
   roles: string[];
 }
 
-export const refresh: ValidatedEventAPIGatewayProxyEvent<unknown> = async (event) => {
+export const refresh: ValidatedEventAPIGatewayProxyEvent<unknown> = async (event): Promise<APIGatewayProxyResult> => {
   const clientSentRefreshToken = getClientSentRefreshToken(event.headers);
 
   // 1. Decode JWT.
@@ -32,7 +32,7 @@ export const refresh: ValidatedEventAPIGatewayProxyEvent<unknown> = async (event
   // 2. Validate user-sent refresh token
   const refreshTokenErrors = await validateRefreshToken(clientSentRefreshToken, jwt.email);
   if (refreshTokenErrors) {
-    return refreshTokenErrors;
+    throw refreshTokenErrors;
   }
 
   // 3. Re-issue access token
@@ -44,6 +44,6 @@ export const refresh: ValidatedEventAPIGatewayProxyEvent<unknown> = async (event
   }, HttpStatus.OK);
 }
 
-function getClientSentRefreshToken(headers: APIGatewayProxyEventHeaders) {
+function getClientSentRefreshToken(headers: APIGatewayProxyEventHeaders): string {
   return headers['Refresh-Token'] ?? '';
 }

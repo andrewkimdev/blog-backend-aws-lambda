@@ -5,19 +5,23 @@ import { HttpStatus } from '@libs/status-code.type';
 
 import {
   generateAndStoreRefreshTokenForUserId,
-  issueUserAccessToken,
+  issueUserAccessToken, UserAuth,
   validateUserLoginCredentials,
 } from './helpers';
+import { APIGatewayProxyResult } from 'aws-lambda';
 
 
-export const login: ValidatedEventAPIGatewayProxyEvent<unknown> = async (event) => {
+export const login: ValidatedEventAPIGatewayProxyEvent<unknown> = async (event): Promise<APIGatewayProxyResult> => {
   const body: { email: string; password: string } = JSON.parse(event.body as string);
   const { email, password } = body;
 
   // 1. Verify user login credential.
-  const { user, error: loginError } = await validateUserLoginCredentials(email, password);
-  if (loginError) {
-    return loginError;
+  let user: UserAuth;
+  try {
+    const res = await validateUserLoginCredentials(email, password);
+    user = res.user;
+  } catch (error) {
+      return error;
   }
 
   // 2. Get signed jwt to user
