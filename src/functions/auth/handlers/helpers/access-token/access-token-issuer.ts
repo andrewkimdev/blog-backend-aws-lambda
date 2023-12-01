@@ -23,14 +23,14 @@ export const issueUserAccessToken = async (user: Omit<UserAuth, "password">, uid
   const { JWT_ACCESS_TOKEN_SECRET, JWT_EXPIRES_IN, JWT_ISSUER } = process.env;
 
   const payload = {
-    uid,
-    roles: user.roles
+    roles: user.roles,
   };
 
   try {
     return sign(payload, JWT_ACCESS_TOKEN_SECRET, {
       expiresIn: JWT_EXPIRES_IN,
       issuer: JWT_ISSUER,
+      subject: uid,
     });
   } catch (error) {
     console.error('Error issuing JWT: ', error);
