@@ -15,10 +15,10 @@ export const refresh: ValidatedEventAPIGatewayProxyEvent<unknown> = async (event
   const tokenValue = getClientSentRefreshTokenValue(event.headers);
 
   // 2. Decode JWT.
-  const { uid, userId } = await decodeJwt(tokenValue);
+  const { uid, userId } = await decodeRefreshJwt(tokenValue);
 
   // 3. Verify if uid matches in DB.
-  const tokenKey = getClientSentRefreshTokenVKey(event.headers);
+  const tokenKey = getClientSentRefreshTokenKey(event.headers);
   await existsRefreshTokenKeyInDb(tokenKey);
 
   // 4. Re-issue access token
@@ -29,21 +29,21 @@ export const refresh: ValidatedEventAPIGatewayProxyEvent<unknown> = async (event
   }, HttpStatus.OK);
 }
 
-async function decodeJwt(token: string) {
+export async function decodeRefreshJwt(token: string) {
   const decoded = verify(token, process.env.JWT_REFRESH_TOKEN_SECRET);
   const uid = decoded?.sub as string;
   const userId = await getUserIdWithUid(uid);
   return { uid, userId };
 }
 
-function getClientSentRefreshTokenValue(headers: APIGatewayProxyEventHeaders): string {
+export function getClientSentRefreshTokenValue(headers: APIGatewayProxyEventHeaders): string {
   const res = headers['Refresh-Token-Value'];
   if (!res) {
     throw new ApiError('Refresh-Token-Value missing', HttpStatus.InternalServerError);
   }
   return res;
 }
-function getClientSentRefreshTokenVKey(headers: APIGatewayProxyEventHeaders): string {
+function getClientSentRefreshTokenKey(headers: APIGatewayProxyEventHeaders): string {
   const res = headers['Refresh-Token-Key'];
   if (!res) {
     throw new ApiError('Refresh-Token-Key missing', HttpStatus.BadRequest);

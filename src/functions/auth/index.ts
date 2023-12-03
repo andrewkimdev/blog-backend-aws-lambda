@@ -1,6 +1,5 @@
 import signupSchema from './schema/signup-schema';
 import loginSchema from './schema/login-schema';
-import logoutSchema from './schema/logout-schema';
 
 import { handlerPath } from '@libs/handler-resolver';
 
@@ -39,11 +38,6 @@ export default {
       http: {
         method: 'post',
         path: 'auth/logout',
-        request: {
-          schemas: {
-            'application/json': logoutSchema,
-          },
-        },
       },
     },
   ],
