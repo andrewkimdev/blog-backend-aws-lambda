@@ -24,10 +24,10 @@ export const login: ValidatedEventAPIGatewayProxyEvent<unknown> = async (event):
   // 2. Create LoginTokenId
   const loginTokenId = await getLoginTokenId(user.id);
 
-  // 2. Get signed jwt to user
-  const accessToken: string = await issueUserAccessToken({ userId: user.id, loginTokenId: loginTokenId });
+  // 3. Get signed jwt to user
+  const accessToken: string = await issueUserAccessToken({ userId: user.id, loginTokenId });
 
-  // 3. Get refresh token and store in DB.
+  // 4. Get refresh token and store in DB.
   const refreshTokenRecord: RefreshTokenRecord = await generateAndStoreRefreshTokenForUserId(user.id, loginTokenId);
 
   return formatJSONResponse({

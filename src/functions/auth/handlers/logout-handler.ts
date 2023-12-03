@@ -10,5 +10,5 @@ export const logout: ValidatedEventAPIGatewayProxyEvent<unknown> = async (event)
   const { userId } = await decodeRefreshJwt(jwt);
   await revokeRefreshToken(userId)
 
-  return formatJSONResponse({ message: 'Logged Out' }, HttpStatus.NoContent);
+  return formatJSONResponse({}, HttpStatus.NoContent);
 };
