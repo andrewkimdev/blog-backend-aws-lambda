@@ -1,33 +1,22 @@
+import { HttpStatus } from '@libs/status-code.type';
 import { APIGatewayProxyResult } from 'aws-lambda';
-import * as bcrypt from 'bcryptjs';
-import { db } from '@libs/database/mysqldb.connection';
 import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 import { formatJSONResponse } from '@libs/api-gateway';
 
-import { HttpStatus } from '@libs/status-code.type';
-import { now } from '@libs/time-helper';
-
-import { emailValidator } from './helpers';
+import { ApiError } from '@libs/api-error';
+import * as signupService from '@functions/auth/handlers/services/signup.service';
 
 export const signup: ValidatedEventAPIGatewayProxyEvent<unknown> = async (event): Promise<APIGatewayProxyResult> => {
-  const body: { email: string; password: string } = JSON.parse(event.body as string);
-  const { email, password } = body;
+  try {
+    const { email, password } = JSON.parse(event.body as string);
 
-  // 1. Reject invalid email address - duplicate / invalid format
-  const emailValidatorError = await emailValidator(email);
-  if (emailValidatorError) {
-    throw emailValidatorError;
+    await signupService.createUser(email, password);
+    return formatJSONResponse({ message: 'Account created' }, HttpStatus.Created);
+  } catch (error) {
+    console.error(error);
+
+    return error instanceof ApiError
+      ? formatJSONResponse({ error: error.message }, error.statusCode)
+      : formatJSONResponse({ message: 'Internal server error' }, HttpStatus.InternalServerError);
   }
-
-  // 2. Create password hash
-  const saltRounds = +process.env.JWT_SALT_ROUNDS;
-  const hash = await bcrypt.hash(password, saltRounds);
-
-  // 4. Create new user
-  const userAddQuery: string = 'INSERT INTO users (email, password, created_at) values (?, ?, ?)';
-  const success = await db.execute(userAddQuery, [email, hash, now()]);
-
-  return formatJSONResponse({
-    message: success ? 'Account created!': 'Something went wrong. Try again later.',
-  }, success? HttpStatus.Created : HttpStatus.InternalServerError);
 };

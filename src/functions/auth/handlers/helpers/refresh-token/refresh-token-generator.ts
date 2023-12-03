@@ -1,6 +1,8 @@
-import { sign } from 'jsonwebtoken';
+import { ApiError } from '@libs/api-error';
 import { db } from '@libs/database/mysqldb.connection';
+import { HttpStatus } from '@libs/status-code.type';
 import { now } from '@libs/time-helper';
+import { sign } from 'jsonwebtoken';
 import { generateRandomString } from './random-string-generator';
 
 export interface RefreshTokenRecord {
@@ -8,7 +10,6 @@ export interface RefreshTokenRecord {
     key: string;
     value: string;
   }
-  error?: any;
 }
 
 export const generateAndStoreRefreshTokenForUserId = async (userId: number, uid: string): Promise<RefreshTokenRecord> => {
@@ -17,26 +18,25 @@ export const generateAndStoreRefreshTokenForUserId = async (userId: number, uid:
   const upsertRefreshTokenQuery: string = getUpsertQueryString();
   const refreshTokenValue = createRefreshTokenValue({ uid, expiresIn });
 
+  let affectedRows = 0;
+  let success = false;
   try {
-    const { affectedRows } = await db.query(upsertRefreshTokenQuery, [userId, refreshTokenId, expiresIn, now(), false, 0]);
-    return affectedRows > 0
-      ? {
-        refreshToken: {
-          key: refreshTokenId,
-          value: refreshTokenValue
-        },
-        error: null,
-      }
-      : {
-        refreshToken: null,
-        error: { message: 'Error in generating refresh token' },
-      };
+    affectedRows = await db.update(upsertRefreshTokenQuery, [userId, refreshTokenId, expiresIn, now(), false, 0]);
+    success = affectedRows > 0;
   } catch (error) {
-    console.error('Error while upserting refresh token: ', error);
+    const message = 'Error upserting refresh token: ' + error;
+    console.error(message);
+    throw new ApiError(message, HttpStatus.InternalServerError);
+  }
+  if (success) {
     return {
-      refreshToken: null,
-      error,
+      refreshToken: {
+        key: refreshTokenId,
+        value: refreshTokenValue
+      }
     };
+  } else {
+    throw new ApiError('Error generating refresh token', HttpStatus.InternalServerError);
   }
 }
 
@@ -45,14 +45,11 @@ export function createRefreshTokenValue(input: { expiresIn: number, uid: string 
 
   const { expiresIn, uid } = input;
 
-  const payload = {
-    uid,
-  }
-
   // Turn into a jwt string
-  return sign(payload, JWT_REFRESH_TOKEN_SECRET, {
+  return sign({}, JWT_REFRESH_TOKEN_SECRET, {
     expiresIn,
     issuer: JWT_ISSUER,
+    subject: uid,
   });
 }
 

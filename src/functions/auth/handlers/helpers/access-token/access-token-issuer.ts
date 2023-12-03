@@ -1,39 +1,38 @@
+import { ApiError } from '@libs/api-error';
+import { HttpStatus } from '@libs/status-code.type';
 import { sign } from 'jsonwebtoken';
 import { db } from '@libs/database/mysqldb.connection';
-import { UserAuth } from '@functions/auth/handlers/types';
 
-/**
- * This function issues a JWT token for a user
- * @param {object} user - A user object
- * @param {string} uid - One-time user id
- * @return {Promise<string>} A promise that resolves into a JWT token
- */
-export const issueUserAccessToken = async (user: Omit<UserAuth, "password">, uid: string): Promise<string> => {
-  const userRoleLookupQuery: string = 'SELECT r.name FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = ?';
+type Principal = {
+  uid: string;
+  userId: number;
+};
 
-  let userRoleLookupResult: { name: string; }[];
-  try {
-    userRoleLookupResult = await db.query(userRoleLookupQuery, [user.id]);
-  } catch (error) {
-    console.error('Error executing userRoleLookupQuery: ', error);
-    throw error;
-  }
-  user.roles = userRoleLookupResult.map(({ name }) => name);
-
-  const { JWT_ACCESS_TOKEN_SECRET, JWT_EXPIRES_IN, JWT_ISSUER } = process.env;
-
+export const issueUserAccessToken = async (principal: Principal): Promise<string> => {
   const payload = {
-    roles: user.roles,
+    roles: await findUserRolesByUserId(principal.userId)
   };
 
   try {
-    return sign(payload, JWT_ACCESS_TOKEN_SECRET, {
-      expiresIn: JWT_EXPIRES_IN,
-      issuer: JWT_ISSUER,
-      subject: uid,
+    return sign(payload, process.env.JWT_ACCESS_TOKEN_SECRET, {
+      expiresIn: process.env.JWT_EXPIRES_IN,
+      issuer: process.env.JWT_ISSUER,
+      subject: principal.uid,
     });
   } catch (error) {
     console.error('Error issuing JWT: ', error);
     throw error;
+  }
+}
+
+async function findUserRolesByUserId(userId: number) {
+  const userRoleLookupQuery: string = 'SELECT r.name FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = ?';
+
+  try {
+    const userRoleLookupResult = await db.getvals<string>(userRoleLookupQuery, [userId]);
+    console.log(userRoleLookupResult);
+    return userRoleLookupResult;
+  } catch (error) {
+    throw new ApiError('Error executing userRoleLookupQuery', HttpStatus.InternalServerError);
   }
 }

@@ -1,31 +1,27 @@
-import { formatJSONResponse } from '@libs/api-gateway';
 import { db } from '@libs/database/mysqldb.connection';
 import { HttpStatus } from '@libs/status-code.type';
+import { ApiError } from '@libs/api-error';
 
 import { isEmailFormatValid } from './email-format-validator';
 
 /**
  * This function validates an email address.
  * @param {string} email - The email address to validate.
- * @return {Promise<object|null>} An object with an error message and HTTP status, or null if email is valid and unique.
+ * @return {Promise<void>} Returns nothing. Errors will simply throw ApiError.
  */
-export const emailValidator = async (email: string): Promise<object|null> => {
+export const emailValidator = async (email: string): Promise<void> => {
+  /* SYNC TEST */
   // Verify email address format
   if (!isEmailFormatValid(email)) {
-    return formatJSONResponse({
-      message: 'Invalid email address format.'
-    }, HttpStatus.BadRequest);
+    throw new ApiError( 'Invalid email address format.', HttpStatus.BadRequest);
   }
-// TODO: Send email to user to verify.
 
+  /* ASYNC TEST */
+// TODO: Send email to user to verify.
 // 2. Verify if email already exists
   if (await isEmailAlreadyTaken(email)) {
-    return formatJSONResponse({
-      message: 'Email already taken. Try a different one.'
-    }, HttpStatus.Conflict);
+    throw new ApiError('Email already taken. Try a different one.', HttpStatus.Conflict);
   }
-// If normal, return null.
-  return null;
 }
 
 /**
@@ -34,10 +30,10 @@ export const emailValidator = async (email: string): Promise<object|null> => {
  * @return {Promise<boolean>} Return a promise that resolves into a boolean value indicating whether the email is already taken.
  */
 async function isEmailAlreadyTaken(email: string): Promise<boolean> {
-  const emailCheckQuery: string = `SELECT COUNT(*) FROM users u WHERE u.email = ?`;
+  const emailCheckQuery: string = 'SELECT EXISTS(SELECT 1 FROM users u WHERE u.email = ?)';
   try {
-    const emailCheckResult = await db.getrow(emailCheckQuery, [email]);
-    return emailCheckResult?.['count(*)'] > 0;
+    const accountsWithEmailCount = await db.getval<number>(emailCheckQuery, [email]);
+    return accountsWithEmailCount > 0;
   } catch (error) {
     console.error(`Error while checking if email is already taken: ${error}`);
     return false;

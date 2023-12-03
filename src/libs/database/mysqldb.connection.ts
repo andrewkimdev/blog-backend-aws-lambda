@@ -13,4 +13,4 @@ export const db = new Db({
   password: MYSQL_DB_PASSWORD,
   ssl: { 'rejectUnauthorized': true },
   pool: 4,
-})
+});

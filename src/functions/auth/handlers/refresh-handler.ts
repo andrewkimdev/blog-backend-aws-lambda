@@ -1,49 +1,64 @@
-import { JwtPayload } from 'jsonwebtoken';
+import { getUserIdWithUid } from '@functions/auth/handlers/helpers/refresh-token/user-uid';
+import { ApiError } from '@libs/api-error';
+import { db } from '@libs/database/mysqldb.connection';
+import { verify } from 'jsonwebtoken';
 import { APIGatewayProxyEventHeaders, APIGatewayProxyResult } from 'aws-lambda';
 
 import { HttpStatus } from '@libs/status-code.type';
 import { formatJSONResponse, ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
-import { internalServerErrorResponse, invalidCredentialsResponse } from '@libs/responses';
+import * as process from 'process';
 
-import { decodeJwtFromHeader, issueUserAccessToken, validateRefreshToken } from './helpers';
-
-
-interface CustomJwtPayload {
-  email: string;
-  roles: string[];
-}
+import { issueUserAccessToken } from './helpers';
 
 export const refresh: ValidatedEventAPIGatewayProxyEvent<unknown> = async (event): Promise<APIGatewayProxyResult> => {
-  const clientSentRefreshToken = getClientSentRefreshToken(event.headers);
+  // 1. Validate user-sent refresh token
+  const tokenValue = getClientSentRefreshTokenValue(event.headers);
 
-  // 1. Decode JWT.
-  let jwt: JwtPayload & CustomJwtPayload;
-  try {
-    const { decoded } = decodeJwtFromHeader(event.headers);
-    if (typeof decoded.payload === 'string') {
-      console.error('something went wrong with payload type');
-      return internalServerErrorResponse();
-    }
-    jwt = decoded.payload as JwtPayload & CustomJwtPayload;
-  } catch (error) {
-    return invalidCredentialsResponse();
-  }
+  // 2. Decode JWT.
+  const { uid, userId } = await decodeJwt(tokenValue);
 
-  // 2. Validate user-sent refresh token
-  const refreshTokenErrors = await validateRefreshToken(clientSentRefreshToken, jwt.email);
-  if (refreshTokenErrors) {
-    throw refreshTokenErrors;
-  }
+  // 3. Verify if uid matches in DB.
+  const tokenKey = getClientSentRefreshTokenVKey(event.headers);
+  await existsRefreshTokenKeyInDb(tokenKey);
 
-  // 3. Re-issue access token
-  const { email, id, roles } = jwt;
-  const updatedAccessToken = await issueUserAccessToken({ email, id, roles })
+  // 4. Re-issue access token
+  const updatedAccessToken = await issueUserAccessToken({ userId, uid })
   return formatJSONResponse({
     message: 'Access token refreshed',
     access_token: updatedAccessToken,
   }, HttpStatus.OK);
 }
 
-function getClientSentRefreshToken(headers: APIGatewayProxyEventHeaders): string {
-  return headers['Refresh-Token'] ?? '';
+async function decodeJwt(token: string) {
+  const decoded = verify(token, process.env.JWT_REFRESH_TOKEN_SECRET);
+  const uid = decoded?.sub as string;
+  const userId = await getUserIdWithUid(uid);
+  return { uid, userId };
+}
+
+function getClientSentRefreshTokenValue(headers: APIGatewayProxyEventHeaders): string {
+  const res = headers['Refresh-Token-Value'];
+  if (!res) {
+    throw new ApiError('Refresh-Token-Value missing', HttpStatus.InternalServerError);
+  }
+  return res;
+}
+function getClientSentRefreshTokenVKey(headers: APIGatewayProxyEventHeaders): string {
+  const res = headers['Refresh-Token-Key'];
+  if (!res) {
+    throw new ApiError('Refresh-Token-Key missing', HttpStatus.BadRequest);
+  }
+  return res;
+}
+
+async function existsRefreshTokenKeyInDb(tokenKey: string): Promise<boolean> {
+  const query: string = 'SELECT user_id FROM user_one_time_id WHERE uid = ?';
+
+  try {
+    const result = await db.getval<number>(query, [tokenKey]);
+    return result > 0;
+  } catch (error) {
+    console.error(error);
+    throw new ApiError('Error querying refresh token key', HttpStatus.InternalServerError);
+  }
 }

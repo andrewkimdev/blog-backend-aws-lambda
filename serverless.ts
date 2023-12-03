@@ -3,6 +3,7 @@ import type { AWS } from '@serverless/typescript';
 import {
   posts,
   auth,
+  hello,
 } from '@functions/index';
 
 const serverlessConfiguration: AWS = {
@@ -26,6 +27,7 @@ const serverlessConfiguration: AWS = {
   functions: {
     auth,
     posts,
+    hello,
   },
   package: { individually: true },
   custom: {
