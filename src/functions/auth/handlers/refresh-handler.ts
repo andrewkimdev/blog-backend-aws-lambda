@@ -11,15 +11,18 @@ import * as process from 'process';
 import { issueUserAccessToken } from './helpers';
 
 export const refresh: ValidatedEventAPIGatewayProxyEvent<unknown> = async (event): Promise<APIGatewayProxyResult> => {
+
   // 1. Validate user-sent refresh token
   const tokenValue = getClientSentRefreshTokenValue(event.headers);
 
   // 2. Decode JWT.
   const { loginTokenId, userId } = await decodeRefreshJwt(tokenValue);
 
-  // 3. Verify if uid matches in DB.
+  // 3. Verify if login_token_id  matches in DB.
   const tokenKey = getClientSentRefreshTokenKey(event.headers);
-  await existsRefreshTokenKeyInDb(tokenKey);
+  if (!await existsRefreshTokenKeyInDb(tokenKey)) {
+    return formatJSONResponse({ message: 'Invalid credentials. Login again' }, HttpStatus.Unauthorized);
+  }
 
   // 4. Re-issue access token
   const updatedAccessToken = await issueUserAccessToken({ userId, loginTokenId })
@@ -43,6 +46,7 @@ export function getClientSentRefreshTokenValue(headers: APIGatewayProxyEventHead
   }
   return res;
 }
+
 function getClientSentRefreshTokenKey(headers: APIGatewayProxyEventHeaders): string {
   const res = headers['Refresh-Token-Key'];
   if (!res) {
