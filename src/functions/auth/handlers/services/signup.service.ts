@@ -1,8 +1,8 @@
-import * as bcrypt from 'bcryptjs';
 import { ApiError } from '@libs/api-error';
 import { db } from '@libs/database/mysqldb.connection';
 import { HttpStatus } from '@libs/status-code.type';
 import { now } from '@libs/time-helper';
+import * as bcrypt from 'bcryptjs';
 
 import { emailValidator, fetchRoles } from '../helpers';
 

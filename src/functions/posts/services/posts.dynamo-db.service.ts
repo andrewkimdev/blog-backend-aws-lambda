@@ -1,9 +1,4 @@
-import {
-  // ScanCommand,
-  PutCommand,
-  // GetCommand,
-  // DeleteCommand,
-} from '@aws-sdk/lib-dynamodb';
+import { PutCommand, } from '@aws-sdk/lib-dynamodb';
 
 import { dynamo } from '@libs/dynamo-db';
 

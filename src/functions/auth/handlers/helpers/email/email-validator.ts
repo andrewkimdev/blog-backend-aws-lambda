@@ -1,6 +1,6 @@
+import { ApiError } from '@libs/api-error';
 import { db } from '@libs/database/mysqldb.connection';
 import { HttpStatus } from '@libs/status-code.type';
-import { ApiError } from '@libs/api-error';
 
 import { isEmailFormatValid } from './email-format-validator';
 

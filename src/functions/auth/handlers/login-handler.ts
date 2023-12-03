@@ -1,11 +1,11 @@
 import { getLoginTokenId } from '@functions/auth/handlers/helpers/refresh-token/login-token-id';
-import { APIGatewayProxyResult } from 'aws-lambda';
-import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
-
-import { formatJSONResponse } from '@libs/api-gateway';
 
 import { UserAuth } from '@functions/auth/handlers/types';
+
+import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
+import { formatJSONResponse } from '@libs/api-gateway';
 import { HttpStatus } from '@libs/status-code.type';
+import { APIGatewayProxyResult } from 'aws-lambda';
 
 import {
   generateAndStoreRefreshTokenForUserId,

@@ -1,12 +1,12 @@
 import { ApiError } from '@libs/api-error';
-import { formatJSONResponse } from '@libs/api-gateway';
 import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
+import { formatJSONResponse } from '@libs/api-gateway';
 import { HttpStatus } from '@libs/status-code.type';
 
 import { login } from './login-handler';
 import { logout } from './logout-handler';
-import { signup } from './signup-handler';
 import { refresh } from './refresh-handler';
+import { signup } from './signup-handler';
 
 // @ts-ignore
 const auth: ValidatedEventAPIGatewayProxyEvent<unknown> = async (event, context, cb) => {

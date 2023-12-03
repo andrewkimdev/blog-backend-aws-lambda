@@ -1,11 +1,11 @@
-import { db } from '@libs/database/mysqldb.connection';
 import { formatJSONResponse } from '@libs/api-gateway';
-import { now } from '@libs/time-helper';
-import { HttpStatus } from '@libs/status-code.type';
+import { db } from '@libs/database/mysqldb.connection';
 import { internalServerErrorResponse, sessionExpiredResponse } from '@libs/responses';
+import { HttpStatus } from '@libs/status-code.type';
+import { now } from '@libs/time-helper';
+import { APIGatewayProxyResult } from 'aws-lambda';
 
 import { revokeRefreshToken } from './refresh-token-revoker';
-import { APIGatewayProxyResult } from 'aws-lambda';
 
 interface RefreshTokenRecord {
   user_id: number;

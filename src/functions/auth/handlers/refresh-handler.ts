@@ -1,11 +1,11 @@
 import { getUserIdWithLoginTokenId } from '@functions/auth/handlers/helpers/refresh-token/login-token-id';
 import { ApiError } from '@libs/api-error';
+import { formatJSONResponse, ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 import { db } from '@libs/database/mysqldb.connection';
-import { verify } from 'jsonwebtoken';
-import { APIGatewayProxyEventHeaders, APIGatewayProxyResult } from 'aws-lambda';
 
 import { HttpStatus } from '@libs/status-code.type';
-import { formatJSONResponse, ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
+import { APIGatewayProxyEventHeaders, APIGatewayProxyResult } from 'aws-lambda';
+import { verify } from 'jsonwebtoken';
 import * as process from 'process';
 
 import { issueUserAccessToken } from './helpers';

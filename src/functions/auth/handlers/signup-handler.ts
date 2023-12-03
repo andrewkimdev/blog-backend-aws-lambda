@@ -1,9 +1,8 @@
-import { HttpStatus } from '@libs/status-code.type';
-import { APIGatewayProxyResult } from 'aws-lambda';
+import * as signupService from '@functions/auth/handlers/services/signup.service';
 import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 import { formatJSONResponse } from '@libs/api-gateway';
-
-import * as signupService from '@functions/auth/handlers/services/signup.service';
+import { HttpStatus } from '@libs/status-code.type';
+import { APIGatewayProxyResult } from 'aws-lambda';
 
 export const signup: ValidatedEventAPIGatewayProxyEvent<unknown> = async (event): Promise<APIGatewayProxyResult> => {
   const { email, password } = JSON.parse(event.body as string);

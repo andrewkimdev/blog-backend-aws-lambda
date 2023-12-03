@@ -1,7 +1,6 @@
-import signupSchema from './schema/signup-schema';
-import loginSchema from './schema/login-schema';
-
 import { handlerPath } from '@libs/handler-resolver';
+import loginSchema from './schema/login-schema';
+import signupSchema from './schema/signup-schema';
 
 export default {
   handler: `${ handlerPath(__dirname) }/handlers/index.main`,

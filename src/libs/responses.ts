@@ -1,7 +1,6 @@
-import { APIGatewayProxyResult } from 'aws-lambda';
-
 import { formatJSONResponse } from '@libs/api-gateway';
 import { HttpStatus } from '@libs/status-code.type';
+import { APIGatewayProxyResult } from 'aws-lambda';
 
 export function successServerResponse(message = 'Success'): APIGatewayProxyResult {
   return formatJSONResponse({ message }, HttpStatus.NotAcceptable);

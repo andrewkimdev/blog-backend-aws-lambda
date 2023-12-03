@@ -1,10 +1,10 @@
 import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 
 import { createOne } from './create-one';
-import { getOneById } from './get-one-by-id';
-import { getMany } from './get-many';
-import { updateOne } from './update-one';
 import { deleteById } from './delete-by-id';
+import { getMany } from './get-many';
+import { getOneById } from './get-one-by-id';
+import { updateOne } from './update-one';
 
 // @ts-ignore
 const posts: ValidatedEventAPIGatewayProxyEvent<void> = async (event, context, cb) => {
