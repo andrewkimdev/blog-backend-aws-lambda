@@ -8,7 +8,7 @@ import { updateOne } from './update-one';
 
 // @ts-ignore
 const posts: ValidatedEventAPIGatewayProxyEvent<void> = async (event, context, cb) => {
-  switch(event.httpMethod) {
+  switch (event.httpMethod) {
     case 'GET':
       return event.pathParameters ? getOneById(event, context, cb) : getMany(event, context, cb)
     case 'DELETE':

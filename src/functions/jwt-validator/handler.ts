@@ -8,10 +8,10 @@ const jwtValidator = function(event, _context, callback) {
       callback(null, generatePolicy('user', 'Deny', event.methodArn));
       break;
     case 'unauthorized':
-      callback("Unauthorized");   // Return a 401 Unauthorized response
+      callback('Unauthorized');   // Return a 401 Unauthorized response
       break;
     default:
-      callback("Error: Invalid token"); // Return a 500 Invalid token response
+      callback('Error: Invalid token'); // Return a 500 Invalid token response
   }
 };
 
@@ -38,10 +38,10 @@ const generatePolicy = function(principalId, effect, resource) {
 
   // Optional output with custom properties of the String, Number or Boolean type.
   authResponse.context = {
-    "stringKey": "stringval",
-    "numberKey": 123,
-    "booleanKey": true,
-    "test-now": "yes",
+    'stringKey': 'stringval',
+    'numberKey': 123,
+    'booleanKey': true,
+    'test-now': 'yes',
   };
   return authResponse;
 }

@@ -13,7 +13,7 @@ export const emailValidator = async (email: string): Promise<void> => {
   /* SYNC TEST */
   // Verify email address format
   if (!isEmailFormatValid(email)) {
-    throw new ApiError( 'Invalid email address format.', HttpStatus.BadRequest);
+    throw new ApiError('Invalid email address format.', HttpStatus.BadRequest);
   }
 
   /* ASYNC TEST */
@@ -35,7 +35,7 @@ async function isEmailAlreadyTaken(email: string): Promise<boolean> {
     const accountsWithEmailCount = await db.getval<number>(emailCheckQuery, [email]);
     return accountsWithEmailCount > 0;
   } catch (error) {
-    console.error(`Error while checking if email is already taken: ${error}`);
+    console.error(`Error while checking if email is already taken: ${ error }`);
     return false;
   }
 }

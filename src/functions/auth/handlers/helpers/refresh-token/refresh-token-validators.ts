@@ -16,7 +16,7 @@ interface RefreshTokenRecord {
   revokedAt: number;
 }
 
-export const validateRefreshToken = async (clientSentRefreshToken: string, email: string): Promise<APIGatewayProxyResult|null> => {
+export const validateRefreshToken = async (clientSentRefreshToken: string, email: string): Promise<APIGatewayProxyResult | null> => {
   // Find refresh token reference in DB
   try {
     const res: RefreshTokenRecord | null = await getRefreshTokenFromStore(email);
@@ -36,7 +36,7 @@ export const validateRefreshToken = async (clientSentRefreshToken: string, email
     }
     return null;
   } catch (error) {
-    console.error ('Something went wrong: ' + error);
+    console.error('Something went wrong: ' + error);
     return internalServerErrorResponse();
   }
 }

@@ -2,7 +2,7 @@ import { formatJSONResponse, ValidatedEventAPIGatewayProxyEvent } from '@libs/ap
 
 export const updateOne: ValidatedEventAPIGatewayProxyEvent<void> = async (event) => {
   return formatJSONResponse({
-    message: `[PUT] Update Post - ${event.pathParameters?.id}`,
+    message: `[PUT] Update Post - ${ event.pathParameters?.id }`,
     method: event.httpMethod,
     body: event.body,
     pathParameters: event.pathParameters,

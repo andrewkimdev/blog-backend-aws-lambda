@@ -1,5 +1,5 @@
 export default {
-  type: "object",
+  type: 'object',
   properties: {
     id: { type: 'string' },
     title: { type: 'string' },

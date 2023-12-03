@@ -1,5 +1,5 @@
 export default {
-  type: "object",
+  type: 'object',
   properties: {
     email: { type: 'string' },
     password: { type: 'string' },

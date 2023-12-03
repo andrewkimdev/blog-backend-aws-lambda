@@ -6,7 +6,7 @@ export async function revokeRefreshToken(userId: number): Promise<void> {
   try {
     await db.update(revokeRefreshTokenQuery, [userId]);
   } catch (error) {
-    console.error("Error while revoking refresh token: ", error);
+    console.error('Error while revoking refresh token: ', error);
     throw error;
   }
 }
