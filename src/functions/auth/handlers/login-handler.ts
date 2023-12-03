@@ -1,4 +1,4 @@
-import { generateAndSaveUidForUser } from '@functions/auth/handlers/helpers/refresh-token/user-uid';
+import { getLoginTokenId } from '@functions/auth/handlers/helpers/refresh-token/login-token-id';
 import { APIGatewayProxyResult } from 'aws-lambda';
 import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 
@@ -21,14 +21,14 @@ export const login: ValidatedEventAPIGatewayProxyEvent<unknown> = async (event):
   // 1. Verify user login credential.
   const user: UserAuth = await validateUserLoginCredentials(email, password);
 
-  // 2. Create uid
-  const uid = await generateAndSaveUidForUser(user.id);
+  // 2. Create LoginTokenId
+  const loginTokenId = await getLoginTokenId(user.id);
 
   // 2. Get signed jwt to user
-  const accessToken: string = await issueUserAccessToken({ userId: user.id, uid });
+  const accessToken: string = await issueUserAccessToken({ userId: user.id, loginTokenId: loginTokenId });
 
   // 3. Get refresh token and store in DB.
-  const refreshTokenRecord: RefreshTokenRecord = await generateAndStoreRefreshTokenForUserId(user.id, uid);
+  const refreshTokenRecord: RefreshTokenRecord = await generateAndStoreRefreshTokenForUserId(user.id, loginTokenId);
 
   return formatJSONResponse({
     message: 'Login success!',

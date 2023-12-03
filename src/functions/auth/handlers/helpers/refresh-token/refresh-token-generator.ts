@@ -12,11 +12,11 @@ export interface RefreshTokenRecord {
   }
 }
 
-export const generateAndStoreRefreshTokenForUserId = async (userId: number, uid: string): Promise<RefreshTokenRecord> => {
+export const generateAndStoreRefreshTokenForUserId = async (userId: number, loginTokenId: string): Promise<RefreshTokenRecord> => {
   const refreshTokenId = generateRandomString(127);
   const expiresIn = getExpiresInTimestamp();
   const upsertRefreshTokenQuery: string = getUpsertQueryString();
-  const refreshTokenValue = createRefreshTokenValue({ uid, expiresIn });
+  const refreshTokenValue = createRefreshTokenValue({ loginTokenId, expiresIn });
 
   let affectedRows = 0;
   let success = false;
@@ -40,16 +40,16 @@ export const generateAndStoreRefreshTokenForUserId = async (userId: number, uid:
   }
 }
 
-export function createRefreshTokenValue(input: { expiresIn: number, uid: string }) {
+export function createRefreshTokenValue(input: { expiresIn: number, loginTokenId: string }) {
   const { JWT_REFRESH_TOKEN_SECRET, JWT_ISSUER } = process.env;
 
-  const { expiresIn, uid } = input;
+  const { expiresIn, loginTokenId } = input;
 
   // Turn into a jwt string
   return sign({}, JWT_REFRESH_TOKEN_SECRET, {
     expiresIn,
     issuer: JWT_ISSUER,
-    subject: uid,
+    subject: loginTokenId,
   });
 }
 

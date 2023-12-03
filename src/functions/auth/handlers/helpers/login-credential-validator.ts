@@ -1,7 +1,6 @@
 import { UserAuth } from '@functions/auth/handlers/types';
 import { ApiError } from '@libs/api-error';
 import { db } from '@libs/database/mysqldb.connection';
-import { invalidCredentialResponse } from '@libs/responses';
 import { HttpStatus } from '@libs/status-code.type';
 import * as bcrypt from 'bcryptjs';
 
@@ -17,7 +16,7 @@ export const validateUserLoginCredentials = async (email: string, password: stri
   // 2. User password does  not match
   const matched = await bcrypt.compare(password, user.password);
   if (!matched) {
-    throw invalidCredentialResponse();
+    throw new ApiError('Invalid user or password', HttpStatus.NotAcceptable);
   }
 
   // User exists and credentials match. Good to go.

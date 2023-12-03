@@ -19,7 +19,11 @@ interface RefreshTokenRecord {
 export const validateRefreshToken = async (clientSentRefreshToken: string, email: string): Promise<APIGatewayProxyResult|null> => {
   // Find refresh token reference in DB
   try {
-    const { user_id, token, revoked, expiresIn }: RefreshTokenRecord = await getRefreshTokenFromStore(email);
+    const res: RefreshTokenRecord | null = await getRefreshTokenFromStore(email);
+    if (!res) {
+      return formatJSONResponse({}, HttpStatus.NoContent);
+    }
+    const { user_id, token, revoked, expiresIn } = res;
     if (token !== clientSentRefreshToken) {
       await revokeRefreshToken(user_id);
       return refreshTokenRevokedResponse();
@@ -46,7 +50,8 @@ function refreshTokenRevokedResponse(): APIGatewayProxyResult {
 async function getRefreshTokenFromStore(email: string): Promise<RefreshTokenRecord> {
   try {
     const findRefreshTokenQuery: string = `SELECT user_id, token, expiresIn, issuedAt, revoked, revokedAt FROM refresh_tokens rt WHERE  
-                                                  EXISTS (SELECT * FROM users u WHERE u.id = rt.user_id AND u.email = ?)`;
+                                                  EXISTS (SELECT * FROM users u WHERE u.id = rt.user_id AND u.email = ?)
+                                                  AND rt.revoked = false`;
     return await db.getrow<RefreshTokenRecord>(findRefreshTokenQuery, [email]);
   } catch (error) {
     console.error('[ERROR retrieving refresh token from store] ' + error);

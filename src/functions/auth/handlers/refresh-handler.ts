@@ -1,4 +1,4 @@
-import { getUserIdWithUid } from '@functions/auth/handlers/helpers/refresh-token/user-uid';
+import { getUserIdWithLoginTokenId } from '@functions/auth/handlers/helpers/refresh-token/login-token-id';
 import { ApiError } from '@libs/api-error';
 import { db } from '@libs/database/mysqldb.connection';
 import { verify } from 'jsonwebtoken';
@@ -15,14 +15,14 @@ export const refresh: ValidatedEventAPIGatewayProxyEvent<unknown> = async (event
   const tokenValue = getClientSentRefreshTokenValue(event.headers);
 
   // 2. Decode JWT.
-  const { uid, userId } = await decodeRefreshJwt(tokenValue);
+  const { loginTokenId, userId } = await decodeRefreshJwt(tokenValue);
 
   // 3. Verify if uid matches in DB.
   const tokenKey = getClientSentRefreshTokenKey(event.headers);
   await existsRefreshTokenKeyInDb(tokenKey);
 
   // 4. Re-issue access token
-  const updatedAccessToken = await issueUserAccessToken({ userId, uid })
+  const updatedAccessToken = await issueUserAccessToken({ userId, loginTokenId })
   return formatJSONResponse({
     message: 'Access token refreshed',
     access_token: updatedAccessToken,
@@ -31,9 +31,9 @@ export const refresh: ValidatedEventAPIGatewayProxyEvent<unknown> = async (event
 
 export async function decodeRefreshJwt(token: string) {
   const decoded = verify(token, process.env.JWT_REFRESH_TOKEN_SECRET);
-  const uid = decoded?.sub as string;
-  const userId = await getUserIdWithUid(uid);
-  return { uid, userId };
+  const loginTokenId = decoded?.sub as string;
+  const userId = await getUserIdWithLoginTokenId(loginTokenId);
+  return { loginTokenId, userId };
 }
 
 export function getClientSentRefreshTokenValue(headers: APIGatewayProxyEventHeaders): string {
@@ -52,7 +52,7 @@ function getClientSentRefreshTokenKey(headers: APIGatewayProxyEventHeaders): str
 }
 
 async function existsRefreshTokenKeyInDb(tokenKey: string): Promise<boolean> {
-  const query: string = 'SELECT user_id FROM user_one_time_id WHERE uid = ?';
+  const query: string = 'SELECT user_id FROM user_one_time_id WHERE login_token_id = ?';
 
   try {
     const result = await db.getval<number>(query, [tokenKey]);
