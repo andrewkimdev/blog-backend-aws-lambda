@@ -6,13 +6,11 @@ import { sign } from 'jsonwebtoken';
 import { generateRandomString } from './random-string-generator';
 
 export interface RefreshTokenRecord {
-  refreshToken: {
     key: string;
     value: string;
-  }
 }
 
-export const generateAndStoreRefreshTokenForUserId = async (userId: number, loginTokenId: string): Promise<RefreshTokenRecord> => {
+export const createRefreshToken = async (userId: number, loginTokenId: string): Promise<RefreshTokenRecord> => {
   const refreshTokenId = generateRandomString(127);
   const expiresIn = getExpiresInTimestamp();
   const upsertRefreshTokenQuery: string = getUpsertQueryString();
@@ -30,10 +28,8 @@ export const generateAndStoreRefreshTokenForUserId = async (userId: number, logi
   }
   if (success) {
     return {
-      refreshToken: {
         key: refreshTokenId,
         value: refreshTokenValue
-      }
     };
   } else {
     throw new ApiError('Error generating refresh token', HttpStatus.InternalServerError);

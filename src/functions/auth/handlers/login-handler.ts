@@ -8,7 +8,7 @@ import { HttpStatus } from '@libs/status-code.type';
 import { APIGatewayProxyResult } from 'aws-lambda';
 
 import {
-  generateAndStoreRefreshTokenForUserId,
+  createRefreshToken,
   issueUserAccessToken,
   RefreshTokenRecord,
   validateUserLoginCredentials,
@@ -28,13 +28,11 @@ export const login: ValidatedEventAPIGatewayProxyEvent<unknown> = async (event):
   const accessToken: string = await issueUserAccessToken({ userId: user.id, loginTokenId });
 
   // 4. Get refresh token and store in DB.
-  const refreshTokenRecord: RefreshTokenRecord = await generateAndStoreRefreshTokenForUserId(user.id, loginTokenId);
+  const refreshTokenRecord: RefreshTokenRecord = await createRefreshToken(user.id, loginTokenId);
 
   return formatJSONResponse({
     message: 'Login success!',
     access_token: accessToken,
-    refresh_token: {
-      ...refreshTokenRecord.refreshToken,
-    },
+    refresh_token: refreshTokenRecord,
   }, HttpStatus.OK);
 };
